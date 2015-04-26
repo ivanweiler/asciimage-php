@@ -10,10 +10,12 @@ class Image
 	private $_width;
 	private $_height;
 	private $_shapes = array();
+	private $_options = array();
 	
 	function __construct($ascii, $options = array())
 	{
 		$this->_ascii = $ascii;
+		$this->_options = $options;
 		$this->_parse();
 	}
 	
@@ -31,7 +33,7 @@ class Image
 			$cols = str_split($row);
 			$width = max($width, count($cols));
 			foreach($cols as $j => $symbol) {
-				if($symbol == '.') {
+				if($symbol == self::SYMBOL_BLANK) {
 					continue;
 				}
 				$marks[strpos(self::SYMBOLS, "$symbol")][] = array($i, $j);
@@ -101,9 +103,12 @@ class Image
 class Shape
 {
 	public $type = 'polygon';
-	public $position = array(array(1,1), array(2,3)); //points?
-	public $closed = false; //path: open closed
+	public $points = array(array(1,1), array(2,3)); //points?
+	
+	public $path = false; //path: open close
+	public $fill = false;
 	public $color = '#000000';
+	public $linecap = 'round';
 	//fill, stroke
 }
 
@@ -145,11 +150,9 @@ EOS;
 		$svg .= <<<EOS
 
 <style>
-ellipse,polygon{fill:black;stroke:black;stroke-width:10}
+ellipse,polygon{ fill:black; stroke:black; stroke-width:10; }
 line{ stroke:black; stroke-width:10; stroke-linecap: square; }
-
-polyline{ stroke:black; stroke-width: 10; stroke-linecap: square; fill: none;}
-
+polyline{ stroke:black; stroke-width: 10; stroke-linecap: round; fill: none; }
 </style>
 EOS;
 		
@@ -166,6 +169,10 @@ EOS;
 					$svg .= "\n" . sprintf(self::LINE, "shape$index", $shape['value'][0][0], $shape['value'][0][1], $shape['value'][1][0], $shape['value'][1][1]);
 					break;
 				case 'point':
+					$fakeX1 = $shape['value'][0][0]-0.01;
+					$fakeX2 = $shape['value'][0][0]+0.01;
+					$y = $shape['value'][0][1];
+					$svg .= "\n" . sprintf(self::LINE, "shape$index", $fakeX1, $y, $fakeX2, $y);
 					break;
 				case 'path':
 					$points = array();
@@ -213,16 +220,16 @@ EOS;
 	}
 }
 
-// :)
+// possible but hard :)
 class Renderer_Ttf
 {
 }
 
 $asciimage = '
-. # 1 # .
-1 . . . 1
+1 # . # 2
 . . . . .
-. . 1 . .
+6 . . . .
+. . . . .
 ';
 
 $asciimage2 = '
