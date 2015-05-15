@@ -2,6 +2,8 @@
 
 namespace ASCIImage\Renderer;
 
+use ASCIImage\Shape;
+
 class Svg
 {
     const DOCTYPE = <<<EOS
@@ -33,12 +35,14 @@ EOS;
     const POLYLINE  = '<polyline id="%s" points="%s"/>';
     const ELLIPSE   = '<ellipse id="%s" cx="%u" cy="%u" rx="%u" ry="%u"/>';
 
-    function __construct(\ASCIImage\Image $asciImage, $options = array())
+    private $_asciImage;
+
+    public function __construct(\ASCIImage\Image $asciImage, $options = array())
     {
         $this->_asciImage = $asciImage;
     }
 
-    function render()
+    public function render()
     {
         $svg = '';
         $svg .= sprintf(
@@ -62,28 +66,31 @@ EOS;
 
         foreach ($this->_asciImage->getShapes() as $index => $shape) {
 
-            array_walk($shape['value'], array($this, '_svg_coord'));
+            $svgPoints = array_map(array($this, '_getSvgPoints'), $shape->points);
 
-            switch ($shape['type']) {
+            switch ($shape->type) {
 
-                case 'line':
-                    $svg .= "\n" . sprintf(self::LINE, "shape$index", $shape['value'][0][0], $shape['value'][0][1], $shape['value'][1][0], $shape['value'][1][1]);
+                case Shape::TYPE_LINE:
+                    $svg .= "\n" . sprintf(self::LINE, "shape$index", $svgPoints[0][0], $svgPoints[0][1], $svgPoints[1][0], $svgPoints[1][1]);
                     break;
-                case 'point':
-                    $fakeX1 = $shape['value'][0][0] - 0.01;
-                    $fakeX2 = $shape['value'][0][0] + 0.01;
-                    $y = $shape['value'][0][1];
+
+                case Shape::TYPE_POINT:
+                    $fakeX1 = $svgPoints[0][0] - 0.01;
+                    $fakeX2 = $svgPoints[0][0] + 0.01;
+                    $y = $svgPoints[0][1];
                     $svg .= "\n" . sprintf(self::LINE, "shape$index", $fakeX1, $y, $fakeX2, $y);
                     break;
-                case 'path':
+
+                case Shape::TYPE_POLYGON:
                     $points = array();
-                    foreach ($shape['value'] as $coord) {
+                    foreach ($svgPoints as $coord) {
                         $points[] = $coord[0] . ',' . $coord[1];
                     }
                     $svg .= "\n" . sprintf(self::POLYLINE, "shape$index", implode(' ', $points));
                     break;
-                case 'ellipse':
-                    foreach ($shape['value'] as $i => $coord) {
+
+                case Shape::TYPE_ELLIPSE:
+                    foreach ($svgPoints as $i => $coord) {
                         if ($i == 0) {
                             $minX = $maxX = $coord[0];
                             $minY = $maxY = $coord[1];
@@ -109,14 +116,14 @@ EOS;
         return $svg;
     }
 
-    function display()
+    public function display()
     {
         header('Content-Type: image/svg+xml');
         echo $this->render();
     }
 
-    private function _svg_coord(&$item, $key)
+    private function _getSvgPoints($point)
     {
-        $item = array($item[1] * 10 + 5, $item[0] * 10 + 5);
+        return array($point[1] * 10 + 5, $point[0] * 10 + 5);
     }
 }

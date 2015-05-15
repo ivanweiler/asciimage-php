@@ -44,43 +44,44 @@ class Image
         $this->_width = $width;
         ksort($marks, SORT_STRING);
 
-        //var_dump($marks); die();
+        //var_dump($marks);
+        //die();
 
-        //figure out shapes; polygon, polyline, ellipse, point, line
-        $group = array();
-        for ($i = 0; $i < count($marks); $i++) {
+        /**
+         * figure out shapes (polygon, polyline, ellipse, point, line)
+         */
+        $pendingPoints = array();
+        $lastIndex = false;
+        foreach ($marks as $index => $mark) {
 
-            $currentMark = current($marks);
-            $currentIndex = key($marks);
-            $nextMark = next($marks);
-            $nextIndex = key($marks);
+            $pointCount = count($mark);
 
-            switch (count($currentMark)) {
-                case 1:
-                    $group[] = $currentMark[0];
-
-                    if ($nextIndex === false || count($nextMark) > 1 || $nextIndex != $currentIndex + 1) {
-                        if (count($group) == 1) {
-                            $this->_shapes[] = array('type' => 'point', 'value' => $group);
-                        } else {
-                            $this->_shapes[] = array('type' => 'path', 'value' => $group);
-                        }
-                        //clear group
-                        $group = array();
-                    }
-                    break;
-
-                case 2:
-                    $this->_shapes[] = array('type' => 'line', 'value' => $currentMark);
-                    break;
-
-                //case > 2
-                default:
-                    $this->_shapes[] = array('type' => 'ellipse', 'value' => $currentMark);
+            // flush pending shape if needed
+            if ($pendingPoints && ($pointCount != 1 || $lastIndex !== $index - 1)) {
+                $shapeType = (count($pendingPoints) == 1) ? Shape::TYPE_POINT : Shape::TYPE_POLYGON;
+                $this->_shapes[] = new Shape($shapeType, $pendingPoints);
+                $pendingPoints = array();
             }
+
+            if ($pointCount == 1) {
+                $pendingPoints = array_merge($pendingPoints, $mark);
+                $lastIndex = $index;
+            } elseif ($pointCount == 2) {
+                $this->_shapes[] = new Shape(Shape::TYPE_LINE, $mark);
+            } elseif ($pointCount > 2) {
+                $this->_shapes[] = new Shape(Shape::TYPE_ELLIPSE, $mark);
+            }
+
         }
 
-        //var_dump($this->_shapes); die();
+        // close pending shape
+        if ($pendingPoints) {
+            $shapeType = (count($pendingPoints) == 1) ? Shape::TYPE_POINT : Shape::TYPE_POLYGON;
+            $this->_shapes[] = new Shape($shapeType, $pendingPoints);
+        }
+
+        //var_dump($this->_shapes);
+        //die();
     }
 
     public function getWidth()

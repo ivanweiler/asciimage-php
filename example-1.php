@@ -7,10 +7,10 @@ spl_autoload_register(function($class) {
     require str_replace(array('_','\\'), DIRECTORY_SEPARATOR, $class) . '.php';
 });
 
-$asciimage = '
+$asciimage1 = '
 1 # . # 2
 . . . . .
-6 . . . .
+6 . . . 6
 . . . . .
 ';
 
