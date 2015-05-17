@@ -1,8 +1,7 @@
 # asciimage-php
 
-Work in progress PHP port of ASCIImage project, see http://asciimage.org/ 
+Proof of concept PHP port of ASCIImage project, http://asciimage.org/
 
-SVG logic ported from Ruby port, see https://github.com/Oblomov/asciimage-ruby 
+SVG logic ported from Ruby port, https://github.com/Oblomov/asciimage-ruby
  
- 
-purely for fun, not profit :)
+

@@ -1,20 +1,17 @@
 <?php
 
-//error_reporting(E_ALL | E_STRICT);
-//ini_set('display_errors', 1);
-
 spl_autoload_register(function($class) {
     require str_replace(array('_','\\'), DIRECTORY_SEPARATOR, $class) . '.php';
 });
 
-$asciimage1 = '
+$test = '
 1 # . # 2
 . . . . .
 6 . . . 6
 . . . . .
 ';
 
-$asciimage2 = '
+$asciimage = '
 . . . . 8 . . . .
 . 7 . . 8 . . 9 .
 . . 7 . . . 9 . .
@@ -26,10 +23,7 @@ $asciimage2 = '
 . . . . 4 . . . .
 ';
 
-$image = new \ASCIImage\Image($asciimage2);
+$image = new \ASCIImage\Image($asciimage);
 $svg = new \ASCIImage\Renderer\Svg($image);
 echo $svg->render();
 
-//$image->setAscii();
-//$image->setOptions();
-//$image->setOption(2, array());

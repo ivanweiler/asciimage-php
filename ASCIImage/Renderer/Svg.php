@@ -2,6 +2,7 @@
 
 namespace ASCIImage\Renderer;
 
+use ASCIImage\Image;
 use ASCIImage\Shape;
 
 class Svg
@@ -26,18 +27,16 @@ EOS;
 
     const FOOT = '</svg>';
 
-    const SCALE = 10;
-
     const LINE      = '<line id="%s" x1="%u" y1="%u" x2="%u" y2="%u"/>';
     const POLYGON   = '<polygon id="%s" points="%s"/>';
     const POLYLINE  = '<polyline id="%s" points="%s"/>';
     const ELLIPSE   = '<ellipse id="%s" cx="%u" cy="%u" rx="%u" ry="%u"/>';
 
-    //private $_shapeDefaults = array();
+    const SCALE = 10;
 
     private $_asciImage;
 
-    public function __construct(\ASCIImage\Image $asciImage, $options = array())
+    public function __construct(Image $asciImage, $options = array())
     {
         $this->_asciImage = $asciImage;
     }

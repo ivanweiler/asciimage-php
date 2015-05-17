@@ -25,8 +25,6 @@ class Image
         $this->_ascii = trim($this->_ascii);
         $this->_ascii = preg_replace('#[^' . self::SYMBOLS . '\n]#', self::SYMBOL_BLANK, $this->_ascii);
 
-        //var_dump($this->_ascii);
-
         $rows = explode("\n", $this->_ascii);
         $width = 0;
         $marks = array();
@@ -45,9 +43,6 @@ class Image
         $this->_height = count($rows);
         $this->_width = $width;
         ksort($marks, SORT_STRING);
-
-        //var_dump($marks);
-        //die();
 
         /**
          * figure out shapes (polygon, polyline, ellipse, point, line)
@@ -91,8 +86,6 @@ class Image
             }
         }
 
-        //var_dump($this->_shapes);
-        //die();
     }
 
     public function getWidth()

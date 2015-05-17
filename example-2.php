@@ -34,11 +34,8 @@ $chevronImageWithColor = "
 . . . . . . . . . . . .
 ";
 
-$image = new \ASCIImage\Image($arrowImageWithColor, array(0 => array('color' => '#ff0000')));
-
+$image = new \ASCIImage\Image($chevronImageWithColor, array(0 => array('color' => '#ff0000')));
 //$image->setShapeOption(0, array('path' => 'close', 'linecap' => 'round'));
-
 $svg = new \ASCIImage\Renderer\Svg($image);
 $svg->display();
-//echo $svg->render();
 
