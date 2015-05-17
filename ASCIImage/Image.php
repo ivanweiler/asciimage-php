@@ -25,6 +25,8 @@ class Image
         $this->_ascii = trim($this->_ascii);
         $this->_ascii = preg_replace('#[^' . self::SYMBOLS . '\n]#', self::SYMBOL_BLANK, $this->_ascii);
 
+        //var_dump($this->_ascii);
+
         $rows = explode("\n", $this->_ascii);
         $width = 0;
         $marks = array();
@@ -78,6 +80,15 @@ class Image
         if ($pendingPoints) {
             $shapeType = (count($pendingPoints) == 1) ? Shape::TYPE_POINT : Shape::TYPE_POLYGON;
             $this->_shapes[] = new Shape($shapeType, $pendingPoints);
+        }
+
+        //set shape options
+        foreach ($this->_options as $shapeIndex => $shapeOptions) {
+            if(isset($this->_shapes[$shapeIndex])) {
+                foreach ($shapeOptions as $optionKey => $optionValue) {
+                    $this->_shapes[$shapeIndex]->$optionKey = $optionValue;
+                }
+            }
         }
 
         //var_dump($this->_shapes);

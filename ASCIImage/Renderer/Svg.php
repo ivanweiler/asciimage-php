@@ -12,16 +12,14 @@ class Svg
 EOS;
 
     const HEAD = <<<EOS
-<svg xmlns="http://www.w3.org/2000/svg"
-    style="width: %upx; height: %upx;"
-    preserveAspectRatio="none"
-    viewBox="0 0 %u %u">
+<svg xmlns="http://www.w3.org/2000/svg" style="width: %upx; height: %upx;" preserveAspectRatio="none" viewBox="0 0 %u %u">
 EOS;
 
     const STYLE = <<<EOS
 <style>
-ellipse,polygon{fill:%s;stroke:%s;stroke-width:%u}
-line,polyline{stroke:%s;stroke-width:%u}
+line { stroke:black; stroke-width:10; stroke-linecap:square; }
+polyline { stroke:black; fill:none; stroke-width:10; stroke-linecap:square; }
+ellipse, polygon { stroke:black; fill:black; stroke-width:10; }
 %s
 </style>
 EOS;
@@ -34,6 +32,8 @@ EOS;
     const POLYGON   = '<polygon id="%s" points="%s"/>';
     const POLYLINE  = '<polyline id="%s" points="%s"/>';
     const ELLIPSE   = '<ellipse id="%s" cx="%u" cy="%u" rx="%u" ry="%u"/>';
+
+    //private $_shapeDefaults = array();
 
     private $_asciImage;
 
@@ -49,21 +49,12 @@ EOS;
             self::HEAD,
             300,
             300 * $this->_asciImage->getWidth() / $this->_asciImage->getHeight(),
-            $this->_asciImage->getWidth() * 10,
-            $this->_asciImage->getHeight() * 10
+            $this->_asciImage->getWidth() * self::SCALE,
+            $this->_asciImage->getHeight() * self::SCALE
         );
 
-        $svg .= <<<EOS
-<style>
-ellipse,polygon{ fill:black; stroke:black; stroke-width:10; }
-line{ stroke:black; stroke-width:10; stroke-linecap: square; }
-polyline{ stroke:black; stroke-width: 10; stroke-linecap: round; fill: none; }
-</style>
-EOS;
-
-        //$svg .= '<rect width="100%" height="100%" fill="red" />';
-        //var_dump($this->_asciImage->getShapes()); die();
-
+        $elements = array();
+        $styles = array();
         foreach ($this->_asciImage->getShapes() as $index => $shape) {
 
             $svgPoints = array_map(array($this, '_getSvgPoints'), $shape->points);
@@ -71,14 +62,22 @@ EOS;
             switch ($shape->type) {
 
                 case Shape::TYPE_LINE:
-                    $svg .= "\n" . sprintf(self::LINE, "shape$index", $svgPoints[0][0], $svgPoints[0][1], $svgPoints[1][0], $svgPoints[1][1]);
+                    $elements[] = sprintf(self::LINE, "shape$index", $svgPoints[0][0], $svgPoints[0][1], $svgPoints[1][0], $svgPoints[1][1]);
+                    $styles["shape$index"] = array(
+                        'stroke'            => $shape->color,
+                        'stroke-linecap'    => $shape->linecap
+                    );
                     break;
 
                 case Shape::TYPE_POINT:
                     $fakeX1 = $svgPoints[0][0] - 0.01;
                     $fakeX2 = $svgPoints[0][0] + 0.01;
                     $y = $svgPoints[0][1];
-                    $svg .= "\n" . sprintf(self::LINE, "shape$index", $fakeX1, $y, $fakeX2, $y);
+                    $elements[] = sprintf(self::LINE, "shape$index", $fakeX1, $y, $fakeX2, $y);
+                    $styles["shape$index"] = array(
+                        'stroke'            => $shape->color,
+                        'stroke-linecap'    => $shape->linecap
+                    );
                     break;
 
                 case Shape::TYPE_POLYGON:
@@ -86,7 +85,19 @@ EOS;
                     foreach ($svgPoints as $coord) {
                         $points[] = $coord[0] . ',' . $coord[1];
                     }
-                    $svg .= "\n" . sprintf(self::POLYLINE, "shape$index", implode(' ', $points));
+
+                    $styles["shape$index"] = array(
+                        'stroke'            => $shape->color,
+                        'stroke-linecap'    => $shape->linecap
+                    );
+
+                    if($shape->path == 'open') {
+                        $elements[] = sprintf(self::POLYLINE, "shape$index", implode(' ', $points));
+                    } else {
+                        $elements[] = sprintf(self::POLYGON, "shape$index", implode(' ', $points));
+                        $styles["shape$index"]['fill'] = $shape->color;
+                    }
+
                     break;
 
                 case Shape::TYPE_ELLIPSE:
@@ -107,11 +118,27 @@ EOS;
                     $rx = ($maxX - $minX) / 2;
                     $ry = ($maxY - $minY) / 2;
 
-                    $svg .= "\n" . sprintf(self::ELLIPSE, "shape$index", $centerX, $centerY, $rx, $ry);
+                    $elements[] = sprintf(self::ELLIPSE, "shape$index", $centerX, $centerY, $rx, $ry);
+                    $styles["shape$index"] = array(
+                        'stroke'            => $shape->color,
+                        'fill'              => $shape->color,
+                    );
                     break;
             }
         }
 
+        $style = '';
+        foreach($styles as $elementId => $elementStyle) {
+            $style .= "\n#$elementId{";
+            foreach($elementStyle as $property => $value) {
+                $style .= " $property:$value;";
+            }
+
+            $style .= " }";
+        }
+
+        $svg .= "\n" . sprintf(self::STYLE, $style);
+        $svg .= "\n" . implode("\n", $elements);
         $svg .= "\n" . self::FOOT;
         return $svg;
     }
@@ -119,11 +146,11 @@ EOS;
     public function display()
     {
         header('Content-Type: image/svg+xml');
-        echo $this->render();
+        echo self::DOCTYPE . "\n" . $this->render();
     }
 
     private function _getSvgPoints($point)
     {
-        return array($point[1] * 10 + 5, $point[0] * 10 + 5);
+        return array($point[1] * self::SCALE + self::SCALE/2, $point[0] * self::SCALE + self::SCALE/2);
     }
 }
