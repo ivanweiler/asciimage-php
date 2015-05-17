@@ -4,13 +4,6 @@ spl_autoload_register(function($class) {
     require str_replace(array('_','\\'), DIRECTORY_SEPARATOR, $class) . '.php';
 });
 
-$test = '
-1 # . # 2
-. . . . .
-6 . . . 6
-. . . . .
-';
-
 $asciimage = '
 . . . . 8 . . . .
 . 7 . . 8 . . 9 .
@@ -26,4 +19,3 @@ $asciimage = '
 $image = new \ASCIImage\Image($asciimage);
 $svg = new \ASCIImage\Renderer\Svg($image);
 echo $svg->render();
-

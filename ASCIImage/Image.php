@@ -42,7 +42,7 @@ class Image
 
         $this->_height = count($rows);
         $this->_width = $width;
-        ksort($marks, SORT_STRING);
+        ksort($marks, SORT_NUMERIC);
 
         /**
          * figure out shapes (polygon, polyline, ellipse, point, line)
@@ -79,7 +79,7 @@ class Image
 
         //set shape options
         foreach ($this->_options as $shapeIndex => $shapeOptions) {
-            if(isset($this->_shapes[$shapeIndex])) {
+            if (isset($this->_shapes[$shapeIndex])) {
                 foreach ($shapeOptions as $optionKey => $optionValue) {
                     $this->_shapes[$shapeIndex]->$optionKey = $optionValue;
                 }
